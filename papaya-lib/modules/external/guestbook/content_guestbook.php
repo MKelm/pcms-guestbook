@@ -44,6 +44,8 @@ class content_guestbook extends base_content {
       'input', 4, '', 10),
     'block_seconds' => array('Seconds to block ip', 'isNum', TRUE, 
       'input', 4, '', 30),
+    'max_text_length' => array('Maximal length of text', 'isNum', TRUE, 
+      'input', 4, '', 255),
     'Text',
     'nl2br' => array('Automatic linebreak', 'isNum', FALSE, 'combo', 
       array(0 => 'Yes', 1 => 'No'),
@@ -115,26 +117,31 @@ class content_guestbook extends base_content {
     switch($this->params['action']) {
 		case 'insert':		
 		  if (isset($gbObject->entryDialog) && is_object($gbObject->entryDialog)) {
-		  	if ($gbObject->entryDialog->checkDialogInput()) {
-		  		if ($gbObject->checkSpam(@$this->data['block_seconds'])) {
-		  			$gbObject->createEntry($this->data['book']);
-						
-						if ((int)@$this->data['admin_sendmails'] == 1) {
-							$gbObject->sendAdminMail(
-								(string)@$this->data['admin_email'], 
-								(string)@$this->data['admin_name'],
-								(string)@$this->data['mailsubject'],
-								(string)@$this->data['mailtext'],
-								(string)@$this->data['mailfrom_name'], 
-								(string)@$this->data['mailfrom_email']
-							);
+		  	if (strlen($gbObject->entryDialog->data['text']) <= 
+		  	      (int)$this->data['max_text_length']) {
+					if ($gbObject->entryDialog->checkDialogInput()) {
+						if ($gbObject->checkSpam(@$this->data['block_seconds'])) {
+							$gbObject->createEntry($this->data['book']);
+							
+							if ((int)@$this->data['admin_sendmails'] == 1) {
+								$gbObject->sendAdminMail(
+									(string)@$this->data['admin_email'], 
+									(string)@$this->data['admin_name'],
+									(string)@$this->data['mailsubject'],
+									(string)@$this->data['mailtext'],
+									(string)@$this->data['mailfrom_name'], 
+									(string)@$this->data['mailfrom_email']
+								);
+							}
+						} else {
+							$errorMsg = $this->data['msg_spam_protection'];
 						}
-		  		} else {
-		  			$errorMsg = $this->data['msg_spam_protection'];
-		  		}
-		  	} else {
-		  		$errorMsg = $this->data['msg_input_error'];
-		  	}
+					} else {
+						$errorMsg = $this->data['msg_input_error'];
+					}
+			  } else {
+			  	$errorMsg = $this->data['msg_input_error'];
+			  }
 		  } else {
 		  	$errorMsg = $this->data['msg_no_data'];
 		  }

@@ -3,8 +3,8 @@
   <name>Guestbook</name>
   <description>Greetings and comments on your website</description>
   <modules>
-    <module type="page" guid="446302981f7305af5f5cffbb94f278b2" name="page" class="content_guestbook" file="content_guestbook.php">Guestbook page for entry display and commenting</module>
-    <module type="admin" guid="f1b18c4b71fb8e7a60f2a54e35f1b701" name="Guestbook" class="edmodule_guestbook" file="edmodule_guestbook.php" glyph="gbook.gif">Guestbook system</module>
+    <module type="page" guid="446302981f7305af5f5cffbb94f278b2" name="Guestbook page" class="content_guestbook" file="content_guestbook.php">Guestbook page for entry display and commenting</module>
+    <module type="admin" guid="f1b18c4b71fb8e7a60f2a54e35f1b701" name="Guestbook" class="edmodule_guestbook" file="edmodule_guestbook.php" glyph="gbook_app.gif">Guestbook system</module>
   </modules>
   <tables>
     <table name="guestbooks"/>
