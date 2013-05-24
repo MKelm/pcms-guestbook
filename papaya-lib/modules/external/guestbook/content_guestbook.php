@@ -1,8 +1,8 @@
 <?php
 /**
 * Guestbook content moudle
-
-* @copyright 2007-2008 by Alexander Nichau, Martin Kelm
+*
+* @copyright 2007-2010 by Alexander Nichau, Martin Kelm
 * @link http://www.idxsolutions.de/
 * @license http://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License, version 2
 *
@@ -13,8 +13,8 @@
 * FOR A PARTICULAR PURPOSE.
 *
 * @package module_guestbook
-* @author Alexander Nichau <alexander@nichau.com>
-* @author Martin Kelm <kelm@idxsolutions.de>
+* @author Alexander Nichau <alexander@nichau.com> (original 2007)
+* @author Martin Kelm <kelm@idxsolutions.de> (updates 2007-2010)
 */
 
 /**
@@ -26,8 +26,8 @@ require_once(PAPAYA_INCLUDE_PATH.'system/base_content.php');
 * Guestbook content module
 *
 * @package module_guestbook
-* @author Alexander Nichau <alexander@nichau.com>
-* @author Martin Kelm <kelm@idxsolutions.de>
+* @author Alexander Nichau <alexander@nichau.com> (original 2007)
+* @author Martin Kelm <kelm@idxsolutions.de> (updates 2007-2010)
 */
 class content_guestbook extends base_content {
 
@@ -35,111 +35,139 @@ class content_guestbook extends base_content {
   * Parameter prefix name
   * @var string $paramName
   */
-  var $paramName = 'gb';
+  public $paramName = 'gb';
 
   /**
   * Set cacheable status of this module
   * @var boolean $cacheable
   */
-  var $cacheable = FALSE;
+  public $cacheable = FALSE;
 
   /**
   * Output object for guestbook content / box modules
   * @var object $gbObject output_guestbook
   */
-  var $outputObj = NULL;
+  public $outputObj = NULL;
 
   /**
    * Dialog form to enter a new entry.
    * var object $entryDialog base_dialog
    */
-  var $entryDialog = NULL;
+  public $entryDialog = NULL;
 
   /**
   * Set dialog captions if the dialog is available
-  * var array $dialogCaptions
+  * @var array $dialogCaptions
   */
-  var $dialogCaptions = array();
+  public $dialogCaptions = array();
 
   /**
   * Edit fields
   * @var string
   */
-  var $editFields = array(
-    'title' => array('Title', 'isNoHTML', TRUE, 'input', 200, ''),
-    'book' => array('Guestbook', 'isNum', FALSE, 'function', 'getGbCombo',
-      '', 0),
-    'entries_per_page' => array('Entries per page', 'isNum', TRUE,
-      'input', 4, '', 10),
-    'block_seconds' => array('Seconds to block ip', 'isNum', TRUE,
-      'input', 4, '', 30),
-    'max_text_length' => array('Maximal length of text', 'isNum', TRUE,
-      'input', 4, '', 255),
-    'show_edit_form' => array('Show edit formular', 'isNum', TRUE, 'combo',
-      array(0 => 'No', 1 => 'Yes'), '', 1),
+  public $editFields = array(
+    'title' => array('Title', 'isNoHTML', TRUE, 'input', 200, NULL, ''),
+    'book' => array(
+      'Guestbook', 'isNum', FALSE, 'function', 'getGbCombo', '', 0
+    ),
+    'entries_per_page' => array(
+      'Entries per page', 'isNum', TRUE, 'input', 4, NULL, 10
+    ),
+    'block_seconds' => array(
+      'Seconds to block ip', 'isNum', TRUE, 'input', 4, NULL, 30
+    ),
+    'max_text_length' => array(
+      'Maximal length of text', 'isNum', TRUE, 'input', 4, NULL, 255
+    ),
+    'show_edit_form' => array(
+      'Show edit formular', 'isNum', TRUE, 'combo',
+      array(0 => 'No', 1 => 'Yes'), NULL, 1
+    ),
 
     'Text',
-    'nl2br' => array('Automatic linebreak', 'isNum', FALSE, 'combo',
-      array(0 => 'Yes', 1 => 'No', '', 1),
-      'Apply linebreaks from input to the HTML output.'),
-    'text' => array('Text', 'isSomeText', FALSE, 'richtext', 10),
+    'nl2br' => array(
+      'Automatic linebreak', 'isNum', FALSE, 'combo',
+      array(0 => 'Yes', 1 => 'No'),
+      'Apply linebreaks from input to the HTML output.',
+      0
+    ),
+    'text' => array('Text', 'isSomeText', FALSE, 'richtext', 10, NULL, ''),
 
     'Emails',
-    'admin_sendmails' => array('Send moderator emails', 'isNum', TRUE,
-      'combo', array(1 => 'Yes', 0 => 'No'), '', 1),
-    'admin_name' => array('Moderator name', 'isNoHTML', TRUE,
-      'input', 50, '', 'Moderator name'),
-    'admin_email' => array('Moderator email', 'isEMail', TRUE,
-      'input', 50, '', 'webmaster@domain.tld'),
-    'mailfrom_name' => array('From name', 'isNoHTML', TRUE,
-      'input', 50, '', 'Guestbook'),
-    'mailfrom_email' => array('From email', 'isEMail', TRUE,
-      'input', 100, '', 'admin@domain.tld'),
-    'mailsubject' => array('Email subject', 'isNoHTML', TRUE,
-      'input', 200, '', 'New entry in guestbook'),
-    'mailtext' => array('Email text', 'isSomeText', TRUE,
-      'textarea', 3, '{%LINK%}, {%MODERATOR%}', '{%LINK%}'),
+    'admin_sendmails' => array(
+      'Send moderator emails', 'isNum', TRUE, 'combo',
+      array(1 => 'Yes', 0 => 'No'), NULL, 0
+    ),
+    'admin_name' => array(
+      'Moderator name', 'isNoHTML', TRUE, 'input', 50, NULL, 'Moderator name'
+    ),
+    'admin_email' => array(
+      'Moderator email', 'isEMail', TRUE, 'input', 50, NULL, ''
+    ),
+    'mailfrom_name' => array(
+      'From name', 'isNoHTML', TRUE, 'input', 50, NULL, 'Guestbook'
+    ),
+    'mailfrom_email' => array(
+      'From email', 'isEMail', TRUE, 'input', 100, NULL, ''
+    ),
+    'mailsubject' => array(
+      'Email subject', 'isNoHTML', TRUE, 'input', 200, NULL,
+      'New entry in guestbook'
+    ),
+    'mailtext' => array(
+      'Email text', 'isSomeText', TRUE, 'textarea', 3,
+      '{%LINK%}, {%MODERATOR%}', '{%LINK%}', ''
+    ),
 
     'Messages',
-    'msg_no_data' => array('No data', 'isNoHTML', TRUE, 'input', 200, '',
-      'No data found.'),
-    'msg_input_error' => array('Input error', 'isNoHTML', TRUE,
-      'input', 200, '', 'Please check your input.'),
-    'msg_spam_protection' => array('Spam protection', 'isNoHTML', TRUE,
-      'input', 200, '',
-      'Spam detected, please wait or change your message.'),
+    'msg_no_data' => array(
+      'No data', 'isNoHTML', TRUE, 'input', 200, NULL, 'No data found.'
+    ),
+    'msg_input_error' => array(
+      'Input error', 'isNoHTML', TRUE, 'input', 200, NULL,
+      'Please check your input.'
+    ),
+    'msg_spam_protection' => array(
+      'Spam protection', 'isNoHTML', TRUE, 'input', 200, NULL,
+      'Spam detected, please wait or change your message.'
+    ),
 
     'Form captions',
-    'cpt_title' => array('Title', 'isNoHTML', TRUE, 'input', 200, '',
-      'Title'),
-    'cpt_name' => array('Name', 'isNoHTML', TRUE, 'input', 200, '',
-      'Name'),
-    'cpt_email' => array('E-Mail', 'isNoHTML', TRUE, 'input', 200, '',
-      'E-mail'),
-    'cpt_text' => array('Text', 'isNoHTML', TRUE, 'input', 200, '',
-      'Text'),
-    'cpt_submit' => array('Submit', 'isNoHTML', TRUE, 'input', 200, '',
-      'Submit'),
+    'cpt_title' => array(
+      'Title', 'isNoHTML', TRUE, 'input', 200, NULL, 'Title'
+    ),
+    'cpt_name' => array(
+      'Name', 'isNoHTML', TRUE, 'input', 200, NULL, 'Name'
+    ),
+    'cpt_email' => array(
+      'E-Mail', 'isNoHTML', TRUE, 'input', 200, NULL, 'E-Mail'
+    ),
+    'cpt_text' => array(
+      'Text', 'isNoHTML', TRUE, 'input', 200, NULL, 'Text'
+    ),
+    'cpt_submit' => array(
+      'Submit', 'isNoHTML', TRUE, 'input', 200, NULL, 'Submit'
+    ),
 
     'Captions',
-    'cpt_entries' => array('Entries', 'isNoHTML', TRUE, 'input', 200, '',
-      'Entries'),
-    'cpt_at' => array('At', 'isNoHTML', TRUE, 'input', 200, '',
-      'at'),
-    'cpt_previous' => array('Previous page', 'isNoHTML', TRUE, 'input', 200, '',
-      'at'),
-    'cpt_next' => array('Next page', 'isNoHTML', TRUE, 'input', 200, '',
-      'at'),
-    'cpt_note' => array('Formular note', 'isNoHTML', TRUE, 'input', 200, '',
-      'You have to fill out all fields!'),
+    'cpt_entries' => array(
+      'Entries', 'isNoHTML', TRUE, 'input', 200, NULL, 'Entries'
+    ),
+    'cpt_at' => array(
+      'At', 'isNoHTML', TRUE, 'input', 200, NULL, 'at'
+    ),
+    'cpt_previous' => array(
+      'Previous page', 'isSomeText', TRUE, 'input', 200, NULL, '<'
+    ),
+    'cpt_next' => array(
+      'Next page', 'isSomeText', TRUE, 'input', 200, NULL, '>'
+    )
   );
 
   /**
   * Initialize output object to use specific output methods and base methods.
-  *
-  * @author Martin Kelm <kelm@idxsolutions.de>
   */
-  function initializeOutputObject() {
+  private function _initializeOutputObject() {
     if (empty($this->outputObj) || !is_object($this->outputObj)) {
       include_once(dirname(__FILE__).'/output_guestbook.php');
       $this->outputObj = &new output_guestbook($this);
@@ -149,40 +177,40 @@ class content_guestbook extends base_content {
   /**
   * Get parsed data
   *
-  * @access public
   * @return string
   */
-  function getParsedData() {
-    $this->initializeParams();
-    $this->initializeOutputObject();
+  public function getParsedData() {
+    $this->setDefaultData();
+    $this->_initializeOutputObject();
 
-    // Set default data is a new method in papaya 5 since april 2008.
-    if (method_exists($this, 'setDefaultData')) {
-      $this->setDefaultData();
-    }
+    $result = sprintf(
+      '<title>%s</title>'.LF,
+      papaya_strings::escapeHTMLChars($this->data['title'])
+    );
+    $result .= sprintf(
+      '<text>%s</text>'.LF,
+      $this->getXHTMLString(
+        $this->data['text'], !((bool)$this->data['nl2br'])
+      )
+    );
 
-    $result = sprintf('<title>%s</title>'.LF,
-      $this->getXHTMLString(@$this->data['title']));
-    $result .= sprintf('<text>%s</text>',
-      $this->getXHTMLString(@$this->data['text'],
-        !((bool)@$this->data['nl2br'])));
-
-    $result .= $this->getCaptionsXML();
+    $result .= $this->_getCaptionsXML();
 
     if ($this->data['show_edit_form'] == 1) {
-      $this->dialogCaptions = $this->getFormCaptions();
+      $this->dialogCaptions = $this->_getFormCaptions();
       // Parameters form captions and load parameters of field values
-      $this->initFormDialog(TRUE);
+      unset($this->entryDialog);
+      $this->_initFormDialog(TRUE);
     }
 
-    switch($this->params['action']) {
+    $action = isset($this->params['action']) ? $this->params['action'] : '';
+    switch($action) {
     case 'insert':
-      $result .= $this->addNewEntry();
-      $result .= $this->getDefaultOutputXML();
+      $result .= $this->_addNewEntry();
+      $result .= $this->_getDefaultOutputXML();
       break;
-
     default:
-      $result .= $this->getDefaultOutputXML();
+      $result .= $this->_getDefaultOutputXML();
     }
 
     return $result;
@@ -193,19 +221,19 @@ class content_guestbook extends base_content {
   *
   * @return string xml
   */
-  function getCaptionsXML() {
+  private function _getCaptionsXML() {
     return sprintf('<captions>'.LF.
                    '<entries>%s</entries>'.LF.
                    '<at>%s</at>'.LF.
                    '<previous>%s</previous>'.LF.
                    '<next>%s</next>'.LF.
-                   '<note>%s</note>'.LF.
+                   '<submit>%s</submit>'.LF.
                    '</captions>'.LF,
-      $this->data['cpt_entries'],
-      $this->data['cpt_at'],
-      $this->data['cpt_previous'],
-      $this->data['cpt_next'],
-      $this->data['cpt_note']
+      papaya_strings::escapeHTMLChars($this->data['cpt_entries']),
+      papaya_strings::escapeHTMLChars($this->data['cpt_at']),
+      papaya_strings::escapeHTMLChars($this->data['cpt_previous']),
+      papaya_strings::escapeHTMLChars($this->data['cpt_next']),
+      papaya_strings::escapeHTMLChars($this->data['cpt_submit'])
     );
   }
 
@@ -215,16 +243,21 @@ class content_guestbook extends base_content {
   * @param array $formCaptions contains an empty array if the formular is not available
   * @return string xml
   */
-  function getDefaultOutputXML() {
-    $result = $this->outputObj->getEntriesXML((int)$this->data['book'],
+  private function _getDefaultOutputXML() {
+    $start = isset($this->params['start']) ? (int)$this->params['start'] : 0;
+    $result = $this->outputObj->getEntriesXML(
+      (int)$this->data['book'],
       (int)$this->data['entries_per_page'],
-      (int)$this->params['start']);
-    $result .= $this->getXMLNavigation((int)$this->data['book'],
+      $start
+    );
+    $result .= $this->_getXMLNavigation(
+      (int)$this->data['book'],
       (int)$this->data['entries_per_page'],
-      (int)$this->params['start']);
+      $start
+    );
 
     if ($this->data['show_edit_form'] == 1) {
-      $result .= $this->getFormXML(TRUE);
+      $result .= $this->_getFormXML(TRUE);
     }
 
     return $result;
@@ -234,10 +267,9 @@ class content_guestbook extends base_content {
   * This method set aggregates formular captions in one array to use in the
   * dialog method later.
   *
-  * @author Martin Kelm <kelm@idxsolutions.de>
   * @return array
   */
-  function getFormCaptions() {
+  private function _getFormCaptions() {
     return array(
       'title'  => $this->data['cpt_title'],
       'name'   => $this->data['cpt_name'],
@@ -250,13 +282,11 @@ class content_guestbook extends base_content {
   /**
    * Initializes dialog
    *
-   * @author Martin Kelm <kelm@idxsolutions.de>
-   *
    * @param array $captions predefined field / formular captions
    * @param boolean $loadParams load formular params set before
    * @return boolean
    */
-  function initFormDialog($loadParams = TRUE) {
+  private function _initFormDialog($loadParams = TRUE) {
     if (!isset($this->entryDialog) || !is_object($this->entryDialog)) {
       $captions = &$this->dialogCaptions;
 
@@ -264,16 +294,22 @@ class content_guestbook extends base_content {
         'action' => 'insert'
       );
       $fields = array(
-        'name' => array($captions['name'], 'isSomeText', TRUE, 'input', 200),
-        'email' => array($captions['email'], 'isEmail', TRUE, 'input', 200),
-        'text' => array($captions['text'], 'isSomeText', TRUE, 'textarea')
+        'name' => array(
+          $captions['name'], 'isSomeText', TRUE, 'input', 200, NULL, ''
+        ),
+        'email' => array(
+          $captions['email'], 'isEmail', TRUE, 'input', 200, NULL, ''
+        ),
+        'text' => array(
+          $captions['text'], 'isSomeText', TRUE, 'textarea', NULL, ''
+        )
       );
 
       include_once(PAPAYA_INCLUDE_PATH.'system/base_surfer.php');
       $this->surferObj = &base_surfer::getInstance();
 
       if ($this->surferObj->isValid !== FALSE) {
-        $name = (isset($this->params['name'])) ? $this->params['name'] : '';
+        $name = isset($this->params['name']) ? $this->params['name'] : '';
 
         if (isset($this->surferObj->surfer['surfer_givenname']) &&
             !empty($this->surferObj->surfer['surfer_givenname']) &&
@@ -287,6 +323,8 @@ class content_guestbook extends base_content {
           'name' => $name,
           'email' => $this->surferObj->surfer['surfer_email']
         );
+      } else {
+        $data = array();
       }
 
       include_once(PAPAYA_INCLUDE_PATH.'system/base_dialog.php');
@@ -301,8 +339,7 @@ class content_guestbook extends base_content {
         $this->entryDialog->loadParams();
       }
     }
-    if (isset($this->entryDialog) &&
-        is_object($this->entryDialog)) {
+    if (isset($this->entryDialog) && is_object($this->entryDialog)) {
       return TRUE;
     }
     return FALSE;
@@ -311,12 +348,10 @@ class content_guestbook extends base_content {
   /**
    * Gets entry form xml
    *
-   * @author Martin Kelm <kelm@idxsolutions.de>
-   *
    * @return mixed boolean or string dialog xml
    */
-  function getFormXML($loadParams = TRUE) {
-    $this->initFormDialog($loadParams);
+  private function _getFormXML($loadParams = TRUE) {
+    $this->_initFormDialog($loadParams);
     if (isset($this->entryDialog) && is_object($this->entryDialog)) {
       return $this->entryDialog->getDialogXML();
     }
@@ -326,22 +361,24 @@ class content_guestbook extends base_content {
   /**
    * Delivers a previous/next Navigation and links to every list page
    *
-   * @author Alexander Nichau <alexander@nichau.com>
-   * @author Martin Kelm <kelm@idxsolutions.de>
-   *
    * @param integer $bookId
    * @param integer $max
    * @param integer $offset Starting point
    * @return string $result XML
    */
-  function getXMLNavigation($bookId, $max, $offset) {
+  private function _getXMLNavigation($bookId, $max, $offset) {
     $count = $this->outputObj->countEntries($bookId);
     $result = LF.'<nav>'.LF;
     $loops = ceil($count / $max);
     for ($i = 0; $i < $loops; $i++) {
       $selected = $i*$max == $offset ? ' selected="selected"' : '';
-      $result .= sprintf('<item href="%s"%s />'.LF,
-        $this->getLink(array('start' => $max*$i)), $selected);
+      $result .= sprintf(
+        '<item href="%s"%s />'.LF,
+        papaya_strings::escapeHTMLChars(
+          $this->getLink(array('start' => $max*$i))
+        ),
+        $selected
+      );
     }
     $result .= '</nav>'.LF;
 
@@ -354,23 +391,29 @@ class content_guestbook extends base_content {
   *
   * @return string XML
   */
-  function addNewEntry() {
+  private function _addNewEntry() {
     $result = '';
     $errorMsg = '';
 
-    if ($this->data['show_edit_form'] == 1
-        && isset($this->entryDialog)
-        && is_object($this->entryDialog)) {
+    if ($this->data['show_edit_form'] == 1 &&
+        isset($this->entryDialog) && is_object($this->entryDialog)) {
 
-      if (strlen($this->entryDialog->data['text']) <=
+      if (!empty($this->params['text']) && strlen($this->params['text']) <=
             (int)$this->data['max_text_length']) {
 
         if ($this->entryDialog->checkDialogInput()) {
-          if ($this->outputObj->checkSpam($this->data['block_seconds'])) {
-            if ($this->outputObj->createEntry($this->data['book']) !== FALSE) {
+          $data = &$this->entryDialog->data;
+          $noSpam = $this->outputObj->checkSpam(
+            $this->data['block_seconds'], $data['email'], $data['text']
+          );
+          if ($noSpam !== FALSE) {
+            $created = $this->outputObj->createEntry(
+              $this->data['book'], $data['name'], $data['email'], $data['text']
+            );
+            if ($created !== FALSE) {
 
               unset($this->entryDialog);
-              $this->initFormDialog(FALSE);
+              $this->_initFormDialog(FALSE);
 
               if ($this->data['admin_sendmails'] === 1) {
                 $this->outputObj->sendAdminMail(
@@ -413,10 +456,11 @@ class content_guestbook extends base_content {
    * @param array $data
    * @return array
    */
-  function getGbCombo($name, $field, $data) {
-    $this->initializeOutputObject();
-    return $this->outputObj->getGuestbookCombo($this->paramName, $name,
-      $this->decodeData($data));
+  public function getGbCombo($name, $field, $data) {
+    $this->_initializeOutputObject();
+    return $this->outputObj->getGuestbookCombo(
+      $this->paramName, $name, $this->_decodeData($data)
+    );
   }
 
   /**
@@ -426,7 +470,7 @@ class content_guestbook extends base_content {
   * @access public
   * @return array
   */
-  function decodeData($str) {
+  private function _decodeData($str) {
     $currentData = explode(';', $str);
     $result = array('id' => @trim($currentData[0]));
     return $result;

@@ -1,8 +1,8 @@
 <?php
 /**
 * Guestbook admin moudle
-
-* @copyright 2007-2008 by Alexander Nichau, Martin Kelm
+*
+* @copyright 2007-2010 by Alexander Nichau, Martin Kelm
 * @link http://www.idxsolutions.de/
 * @license http://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License, version 2
 *
@@ -13,8 +13,8 @@
 * FOR A PARTICULAR PURPOSE.
 *
 * @package module_guestbook
-* @author Alexander Nichau <alexander@nichau.com>
-* @author Martin Kelm <kelm@idxsolutions.de>
+* @author Alexander Nichau <alexander@nichau.com> (original 2007)
+* @author Martin Kelm <kelm@idxsolutions.de> (updates 2007-2010)
 */
 
 /**
@@ -26,22 +26,23 @@ require_once(PAPAYA_INCLUDE_PATH.'system/base_module.php');
 * Guestbook admin module
 *
 * @package module_guestbook
-* @author Alexander Nichau <alexander@nichau.com>
-* @author Martin Kelm <kelm@idxsolutions.de>
+* @author Alexander Nichau <alexander@nichau.com> (original 2007)
+* @author Martin Kelm <kelm@idxsolutions.de> (updates 2007-2010)
 */
 class edmodule_guestbook extends base_module {
+
   /**
   * Permissions
   * @var array
   */
-  var $permissions = array(1 => 'Manage');
+  public $permissions = array(1 => 'Manage');
 
   /**
   * Execute module
   *
   * @access public
   */
-  function execModule() {
+  public function execModule() {
     if ($this->hasPerm(1, TRUE)) {
       $path = dirname(__FILE__);
       include_once($path.'/admin_guestbook.php');
@@ -57,5 +58,4 @@ class edmodule_guestbook extends base_module {
     }
   }
 }
-
 ?>

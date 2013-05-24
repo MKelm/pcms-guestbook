@@ -1,8 +1,8 @@
 <?php
 /**
 * Guestbook base class
-
-* @copyright 2007-2008 by Alexander Nichau, Martin Kelm
+*
+* @copyright 2007-2010 by Alexander Nichau, Martin Kelm
 * @link http://www.idxsolutions.de/
 * @license http://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License, version 2
 *
@@ -13,12 +13,12 @@
 * FOR A PARTICULAR PURPOSE.
 *
 * @package module_guestbook
-* @author Alexander Nichau <alexander@nichau.com>
-* @author Martin Kelm <kelm@idxsolutions.de>
+* @author Alexander Nichau <alexander@nichau.com> (original 2007)
+* @author Martin Kelm <kelm@idxsolutions.de> (updates 2007-2010)
 */
 
 /**
-* database class
+* Database class
 */
 require_once(PAPAYA_INCLUDE_PATH.'system/sys_base_db.php');
 
@@ -26,8 +26,8 @@ require_once(PAPAYA_INCLUDE_PATH.'system/sys_base_db.php');
 * Guestbook base class
 *
 * @package module_guestbook
-* @author Alexander Nichau <alexander@nichau.com>
-* @author Martin Kelm <kelm@idxsolutions.de>
+* @author Alexander Nichau <alexander@nichau.com> (original 2007)
+* @author Martin Kelm <kelm@idxsolutions.de> (updates 2007-2010)
 */
 class base_guestbook extends base_db {
 
@@ -35,37 +35,37 @@ class base_guestbook extends base_db {
   * Parameter prefix name
   * @var string
   */
-  var $paramName = 'gb';
+  public $paramName = 'gb';
 
   /**
   * Parameters
   * @var array
   */
-  var $params = NULL;
+  public $params = NULL;
 
   /**
   * Entries
   * @var array
   */
-  var $entries = NULL;
+  public $entries = NULL;
+
   /**
   * Entry
   * @var array
   */
-  var $entry = NULL;
+  public $entry = NULL;
 
-  var $books = NULL;
-  var $book = NULL;
+  public $books = NULL;
+  public $book = NULL;
 
-  var $allowedTags = array('strong', 'b', 'i', 'tt');
-  var $langId = 1;
+  public $allowedTags = array('strong', 'b', 'i', 'tt');
+  public $langId = 1;
 
   /**
   * Constructor
-
   * @param refrence $parentObj parent object
   */
-  function __construct(&$parentObj = NULL) {
+  public function __construct(&$parentObj = NULL) {
 
     $this->sessionParamName = 'PAPAYA_SESS_'.$this->paramName;
 
@@ -74,19 +74,12 @@ class base_guestbook extends base_db {
   }
 
   /**
-  * PHP4 Wrapper
-  */
-  function base_guestbook(&$parentObj = NULL) {
-    $this->__construct($parentObj);
-  }
-
-  /**
   * Count entries of a specified book.
   *
   * @param integer $bookId
   * @return integer amount of entries
   */
-  function countEntries($bookId) {
+  public function countEntries($bookId) {
     $sql = "SELECT COUNT(*) AS c
               FROM %s
              WHERE guestbook_id = '%s'";
@@ -107,7 +100,7 @@ class base_guestbook extends base_db {
    * @var $this->books
    * @return boolean
    */
-  function loadBooks() {
+  public function loadBooks() {
     unset($this->books);
 
     $sql = "SELECT gb_id, title
@@ -132,7 +125,7 @@ class base_guestbook extends base_db {
    * @param int $offset
    * @return boolean
    */
-  function loadEntries($gbId, $limit = NULL, $offset = NULL) {
+  public function loadEntries($gbId, $limit = NULL, $offset = NULL) {
     unset($this->entries);
 
     if ($gbId > 0) {
@@ -168,7 +161,7 @@ class base_guestbook extends base_db {
    * @param int $gb_id
    * @return boolean
    */
-  function loadBook($gbId) {
+  public function loadBook($gbId) {
     unset($this->book);
 
     if ($gbId >= 0) {
@@ -195,7 +188,7 @@ class base_guestbook extends base_db {
    * @param int $entry_id
    * @return boolean
    */
-  function loadEntry($entryId) {
+  public function loadEntry($entryId) {
     unset($this->entry);
 
     if ($entryId >= 0) {
@@ -218,17 +211,17 @@ class base_guestbook extends base_db {
   /**
    * Spam protection
    *
-   * @author Martin Kelm <kelm@idxsolutions.de>
+   * @param string $text
+   * @param string $email
    * @param string $text
    * @return boolean
-   * @version 19.05.2007
    */
-  function checkSpam($block) {
+  public function checkSpam($block, $email, $text) {
     $checkTime = time() - $block;
     $sql = "SELECT COUNT(entry_id) AS entries
                 FROM %s
                WHERE entry_created > %d
-                AND entry_ip = '%s'";
+                 AND entry_ip = '%s'";
     $params = array($this->tableEntries, (int)$checkTime,
       $_SERVER['REMOTE_ADDR']);
     if ($res = $this->databaseQueryFmt($sql, $params)) {
@@ -241,9 +234,10 @@ class base_guestbook extends base_db {
     $sql = "SELECT COUNT(entry_id) AS entries
                 FROM %s
                WHERE email = '%s'
-                AND entry_text = '%s'";
-    $params = array($this->tableEntries, @$this->params['email'],
-      @$this->params['text']);
+                 AND entry_text = '%s'";
+    $params = array(
+      $this->tableEntries, $email, $text
+    );
     if ($res = $this->databaseQueryFmt($sql, $params)) {
       if ($row = $res->fetchRow(DB_FETCHMODE_ASSOC)) {
         if ($row['entries'] > 0) {
@@ -253,8 +247,8 @@ class base_guestbook extends base_db {
     }
     include_once(PAPAYA_INCLUDE_PATH.'system/base_spamfilter.php');
     $filter = &base_spamfilter::getInstance();
-    $probability = $filter->check($this->params['text'], $this->langId);
-    $filter->log($this->params['text'], $this->langId, 'Guestbook Entry Text');
+    $probability = $filter->check($text, $this->langId);
+    $filter->log($text, $this->langId, 'Guestbook Entry Text');
     if ($probability['spam'] &&
         defined('PAPAYA_SPAM_BLOCK') && PAPAYA_SPAM_BLOCK) {
       return FALSE;
@@ -266,16 +260,17 @@ class base_guestbook extends base_db {
   /**
    * Save a new entry with its guestbook_id in the db
    *
-   * @author Martin Kelm <kelm@idxsolutions.de>
    * @param int $bookId Id of the corresponding guestbook
+   * @param string $name
+   * @param string $email
+   * @param string $text
    * @return boolean
-   * @version 19.05.2007
    */
-  function createEntry($bookId) {
+  public function createEntry($bookId, $name, $email, $text) {
     $data = array(
-      'author' => $this->params['name'],
-      'email'  => $this->params['email'],
-      'entry_text'   => $this->params['text'],
+      'author' => $name,
+      'email'  => $email,
+      'entry_text'   => $text,
       'entry_created' => time(),
       'entry_ip'      => $_SERVER['REMOTE_ADDR'],
       'guestbook_id'  => $bookId
@@ -290,9 +285,6 @@ class base_guestbook extends base_db {
   /**
   * Send a mail to the administrator if a new gb entry has been added.
   *
-  * @author Martin Kelm <kelm@idxsolutions.de>
-  * @version new email object version
-  *
   * @param string $mailTo Recipient E-Mail address
   * @param string $mailTo Recipient's name
   * @param string $mailSubject Subject
@@ -301,8 +293,10 @@ class base_guestbook extends base_db {
   * @param string $mailFromMail Sender's E-Mail address
   * @return boolean Sent or not
   */
-  function sendAdminMail($mailTo, $mailToName, $mailSubject, $mailText,
-                         $mailFromName, $mailFromMail) {
+  public function sendAdminMail(
+           $mailTo, $mailToName, $mailSubject, $mailText,
+           $mailFromName, $mailFromMail
+         ) {
     $content = array();
     $content['LINK'] = 'http://'.$_SERVER['HTTP_HOST'].
       $this->getBasePath().$this->getBaseLink();

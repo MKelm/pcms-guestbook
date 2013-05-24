@@ -1,8 +1,8 @@
 <?php
 /**
-* Guestbook admin moudle
-
-* @copyright 2007-2008 by Alexander Nichau, Martin Kelm
+* Guestbook admin module
+*
+* @copyright 2007-2010 by Alexander Nichau, Martin Kelm
 * @link http://www.idxsolutions.de/
 * @license http://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License, version 2
 *
@@ -13,12 +13,12 @@
 * FOR A PARTICULAR PURPOSE.
 *
 * @package module_guestbook
-* @author Alexander Nichau <alexander@nichau.com>
-* @author Martin Kelm <kelm@idxsolutions.de>
+* @author Alexander Nichau <alexander@nichau.com> (original 2007)
+* @author Martin Kelm <kelm@idxsolutions.de> (updates 2007-2010)
 */
 
 /**
-* guestbook base functionality
+* Guestbook base functionality
 */
 require_once(dirname(__FILE__).'/base_guestbook.php');
 
@@ -26,8 +26,8 @@ require_once(dirname(__FILE__).'/base_guestbook.php');
 * Guestbook admin module
 *
 * @package module_guestbook
-* @author Alexander Nichau <alexander@nichau.com>
-* @author Martin Kelm <kelm@idxsolutions.de>
+* @author Alexander Nichau <alexander@nichau.com> (original 2007)
+* @author Martin Kelm <kelm@idxsolutions.de> (updates 2007-2010)
 */
 class admin_guestbook extends base_guestbook {
 
@@ -35,22 +35,24 @@ class admin_guestbook extends base_guestbook {
   * Forum / books table
   * @var string $tableBoards
   */
-  var $tableBooks = '';
+  public $tableBooks = '';
+
   /**
   * Entry table
   * @var string $tableEntries
   */
-  var $tableEntries = '';
+  public $tableEntries = '';
+
   /**
   * Array with local images
   * @var array $localImages
   */
-  var $localImages = NULL;
+  public $localImages = NULL;
 
   /*
   * Initialize - Load parameters and session variable
   */
-  function initialize() {
+  public function initialize() {
     $this->initializeParams();
     $this->sessionParams = $this->getSessionValue($this->sessionParamName);
     $this->initializeSessionParam('gb_id', array('cmd', 'offset'));
@@ -74,13 +76,15 @@ class admin_guestbook extends base_guestbook {
   /**
   * Execute - basic function for handling parameters
   */
-  function execute() {
-    switch (@$this->params['cmd']) {
+  public public function execute() {
+    $cmd = !empty($this->params['cmd']) ? $this->params['cmd'] : '';
+    switch ($cmd) {
     case 'add_book' :
       if (isset($this->params['title']) && $this->params['save'] == 1) {
         if ($this->addGuestbook()) {
-          $this->addMsg(MSG_INFO, sprintf($this->_gt('%s added.'),
-            $this->_gt('Guestbook')));
+          $this->addMsg(
+            MSG_INFO, sprintf($this->_gt('%s added.'), $this->_gt('Guestbook'))
+          );
         } else {
           $this->addMsg(MSG_ERROR, $this->_gt('Database error!.'));
         }
@@ -90,33 +94,43 @@ class admin_guestbook extends base_guestbook {
       if (isset($this->params['confirm_delete']) &&
           $this->params['confirm_delete']) {
         if ($this->deleteGuestbook((int)$this->params['gb_id'])) {
-          $this->addMsg(MSG_INFO, sprintf($this->_gt('%s deleted.'),
-            $this->_gt('Guestbook')));
+          $this->addMsg(
+            MSG_INFO,
+            sprintf($this->_gt('%s deleted.'), $this->_gt('Guestbook'))
+          );
         } else {
           $this->addMsg(MSG_ERROR, $this->_gt('Database error!.'));
         }
       }
       break;
     case 'edit_book' :
-      if($this->params['save'] == 1 && isset($this->params['gb_id'])) {
+      if (isset($this->params['save']) && $this->params['save'] == 1 &&
+          isset($this->params['gb_id'])) {
         if ($this->saveGuestBook()) {
-          $this->addMsg(MSG_INFO, sprintf($this->_gt('%s modified.'),
-            $this->_gt('Guestbook')));
+          $this->addMsg(
+            MSG_INFO,
+            sprintf($this->_gt('%s modified.'), $this->_gt('Guestbook'))
+          );
         } else {
-          $this->addMsg(MSG_ERROR, $this->_gt('Database error! Changes not saved.'));
+          $this->addMsg(
+            MSG_ERROR, $this->_gt('Database error! Changes not saved.')
+          );
         }
-      }
-      elseif (isset($this->params['gb_id']) &&
-              is_array($this->books[@(int)$this->params['gb_id']])) {
+      } elseif (isset($this->params['gb_id']) &&
+                isset($this->books[(int)$this->params['gb_id']]) &&
+                is_array($this->books[(int)$this->params['gb_id']])) {
         $this->loadBook($this->params['gb_id']);
       }
       break;
     case 'del_entry' :
       if (isset($this->params['confirm_delete']) &&
           $this->params['confirm_delete']) {
-        if ($this->deleteEntry((int)$this->params['entry_id'])) {
-          $this->addMsg(MSG_INFO, sprintf($this->_gt('%s deleted.'),
-            $this->_gt('Entry')));
+        if (isset($this->params['entry_id']) &&
+            $this->deleteEntry((int)$this->params['entry_id'])) {
+          $this->addMsg(
+            MSG_INFO,
+            sprintf($this->_gt('%s deleted.'), $this->_gt('Entry'))
+          );
         } else {
           $this->addMsg(MSG_ERROR, $this->_gt('Database error!.'));
         }
@@ -130,11 +144,12 @@ class admin_guestbook extends base_guestbook {
   * Return XML data
   * @return string
   */
-  function getXML() {
+  public function getXML() {
     if (is_object($this->layout)) {
       $this->getXMLButtons();
+      $cmd = isset($this->params['cmd']) ? $this->params['cmd'] : '';
 
-      switch (@$this->params['cmd']) {
+      switch ($cmd) {
       case 'del_book' :
         $this->getXMLDelGbForm();
         break;
@@ -149,12 +164,16 @@ class admin_guestbook extends base_guestbook {
         $this->getXMLGbEditForm();
         break;
       default :
-        if (isset($this->params['gb_id'])) {
+        if (isset($this->params['gb_id']) && $this->params['gb_id'] > 0) {
           $this->getXMLEntryList();
+        } else {
+          $this->addMsg(MSG_INFO, sprintf($this->_gt('Please select a book.')));
         }
       }
-      if (sizeof($this->entries) == 0) {
-        $this->addMsg(MSG_INFO, sprintf($this->_gt('No entries found.')));
+      if (!isset($this->entries) || count($this->entries) == 0) {
+        if (isset($this->params['gb_id']) && $this->params['gb_id'] > 0) {
+          $this->addMsg(MSG_INFO, sprintf($this->_gt('No entries found.')));
+        }
       }
       $this->getXMLBookList();
     }
@@ -163,40 +182,56 @@ class admin_guestbook extends base_guestbook {
   /**
   * Get XML for buttons
   */
-  function getXMLButtons() {
+  public function getXMLButtons() {
     include_once(PAPAYA_INCLUDE_PATH.'system/base_btnbuilder.php');
     $toolbar = &new base_btnbuilder;
     $toolbar->images = &$this->images;
 
-    $toolbar->addButton('New book',
+    $toolbar->addButton(
+      'New book',
       $this->getLink(array('cmd' => 'add_book')), $this->localImages['gbook_add'],
-      '', FALSE);
+      '',
+      FALSE
+    );
     if (isset($this->params['gb_id']) &&
         isset($this->params['entry_id']) == FALSE) {
-      $toolbar->addButton('Properties',
-        $this->getLink(array('cmd' => 'edit_book',
-          'gb_id' => $this->params['gb_id'])),
-        $this->localImages['gbook_edit'], '', FALSE);
+      $toolbar->addButton(
+        'Properties',
+        $this->getLink(
+          array('cmd' => 'edit_book', 'gb_id' => $this->params['gb_id'])
+        ),
+        $this->localImages['gbook_edit'], '', FALSE
+      );
     }
     if (isset($this->params['gb_id']) &&
         isset($this->params['entry_id']) == FALSE) {
-      $toolbar->addButton('Delete Book',
-        $this->getLink(array('cmd' => 'del_book',
-          'gb_id' => $this->params['gb_id'])),
-        $this->localImages['gbook_remove'], '', FALSE);
+      $toolbar->addButton(
+        'Delete Book',
+        $this->getLink(
+          array('cmd' => 'del_book', 'gb_id' => $this->params['gb_id'])
+        ),
+        $this->localImages['gbook_remove'], '', FALSE
+      );
     }
     if (isset($this->params['gb_id']) &&
         isset($this->params['entry_id'])) {
-      $toolbar->addButton('Delete Entry',
-        $this->getLink(array('cmd' => 'del_entry',
-          'gb_id' => $this->params['gb_id'],
-          'entry_id' => $this->params['entry_id'])),
-        'actions-page-delete', '', FALSE);
+      $toolbar->addButton(
+        'Delete Entry',
+        $this->getLink(
+          array(
+            'cmd' => 'del_entry',
+            'gb_id' => $this->params['gb_id'],
+            'entry_id' => $this->params['entry_id']
+          )
+        ),
+        'actions-page-delete', '', FALSE
+      );
     }
 
     if ($str = $toolbar->getXML()) {
-      $this->layout->addMenu(sprintf('<menu ident="%s">%s</menu>'.LF,
-        'edit', $str));
+      $this->layout->addMenu(
+        sprintf('<menu ident="%s">%s</menu>'.LF, 'edit', $str)
+      );
     }
   }
 
@@ -208,9 +243,13 @@ class admin_guestbook extends base_guestbook {
   * @access public
   * @return mixed FALSE or number of affected_rows or database result object
   */
-  function deleteGuestbook($id) {
-    if ($this->databaseDeleteRecord($this->tableEntries, 'guestbook_id', $id) !== FALSE) {
-      return ($this->databaseDeleteRecord($this->tableBooks, 'gb_id', $id) !== FALSE);
+  public function deleteGuestbook($id) {
+    $deleted = $this->databaseDeleteRecord(
+      $this->tableEntries, 'guestbook_id', $id
+    );
+    if ($deleted !== FALSE) {
+      return FALSE !==
+        $this->databaseDeleteRecord($this->tableBooks, 'gb_id', $id);
     }
     return FALSE;
   }
@@ -221,12 +260,14 @@ class admin_guestbook extends base_guestbook {
   * @access public
   * @return boolean
   */
-  function saveGuestbook() {
+  public function saveGuestbook() {
     $data = array(
       'title' => $this->params['title']
     );
-    return (FALSE !== $this->databaseUpdateRecord($this->tableBooks,
-      $data, 'gb_id', (int)$this->params['gb_id']));
+    return FALSE !==
+      $this->databaseUpdateRecord(
+        $this->tableBooks, $data, 'gb_id', (int)$this->params['gb_id']
+      );
   }
 
 
@@ -236,14 +277,13 @@ class admin_guestbook extends base_guestbook {
   * @access public
   * @return boolean
   */
-  function addGuestbook() {
+  public function addGuestbook() {
     $data = array(
       'title' => $this->params['title']
     );
-    return (FALSE !== $this->databaseInsertRecord($this->tableBooks,
-      'gb_id', $data));
+    return FALSE !==
+      $this->databaseInsertRecord($this->tableBooks, 'gb_id', $data);
   }
-
 
   /**
   * Delete entry
@@ -252,11 +292,13 @@ class admin_guestbook extends base_guestbook {
   * @access public
   * @return boolean
   */
-  function deleteEntry($id) {
+  public function deleteEntry($id) {
     $this->loadEntry($id);
     if (isset($this->entry) && is_array($this->entry)) {
-      if (FALSE !== $this->databaseDeleteRecord($this->tableEntries,
-            'entry_id', $id)) {
+      $deleted = $this->databaseDeleteRecord(
+        $this->tableEntries, 'entry_id', $id
+      );
+      if (FALSE !== $deleted) {
         return TRUE;
       }
     }
@@ -269,12 +311,13 @@ class admin_guestbook extends base_guestbook {
   *
   * @access public
   */
-  function getXMLBookList() {
+  public function getXMLBookList() {
     if (isset($this->books) && is_array($this->books)) {
-      $result = sprintf('<listview title="%s" width="200">'.LF,
-        $this->_gt('Guestbooks'));
+      $result = sprintf(
+        '<listview title="%s" width="200">'.LF, $this->_gt('Guestbooks')
+      );
       $result .= '<items>'.LF;
-      foreach($this->books as $book) {
+      foreach ($this->books as $book) {
         if (isset($book) && is_array($book)) {
           $selected = (isset($this->params['gb_id']) &&
                        $this->params['gb_id'] == $book['gb_id']) ?
@@ -303,7 +346,7 @@ class admin_guestbook extends base_guestbook {
   *
   * @access public
   */
-  function getXMLDelGbForm() {
+  public function getXMLDelGbForm() {
     $this->loadBooks();
     if (isset($this->books[$this->params['gb_id']]) &&
         is_array($this->books[$this->params['gb_id']])) {
@@ -314,10 +357,13 @@ class admin_guestbook extends base_guestbook {
         'confirm_delete' =>1,
       );
       $msg = sprintf($this->_gt('Delete guestbook "%s" (%s)?'),
-      papaya_strings::escapeHTMLChars($this->books[$this->params['gb_id']]['title']),
-      (int)$this->params['gb_id']);
-      $dialog = &new base_msgdialog($this, $this->paramName, $hidden,
-        $msg, 'question');
+      papaya_strings::escapeHTMLChars(
+        $this->books[$this->params['gb_id']]['title']),
+        (int)$this->params['gb_id']
+      );
+      $dialog = &new base_msgdialog(
+        $this, $this->paramName, $hidden, $msg, 'question'
+      );
       $dialog->baseLink = $this->baseLink;
       $dialog->msgs = &$this->msgs;
       $dialog->buttonTitle = 'Delete';
@@ -331,11 +377,11 @@ class admin_guestbook extends base_guestbook {
   *
   * @access public
   */
-  function getXMLGbEditForm() {
+  public function getXMLGbEditForm() {
     if (isset($this->books[$this->params['gb_id']]) &&
         is_array($this->books[$this->params['gb_id']])) {
       $this->initializeGbEditForm();
-      $this->gbDialog->inputFieldSize = $this->inputFieldSize;
+      $this->gbDialog->inputFieldSize = 'x-large';
       $this->gbDialog->baseLink = $this->baseLink;
       $this->gbDialog->dialogTitle =
         papaya_strings::escapeHTMLChars($this->_gt('Properties'));
@@ -345,9 +391,9 @@ class admin_guestbook extends base_guestbook {
   }
 
 
-  function getXMLGbAddForm() {
+  public function getXMLGbAddForm() {
     $this->initializeGbAddForm();
-    $this->gbDialog->inputFieldSize = $this->inputFieldSize;
+    $this->gbDialog->inputFieldSize = 'x-large';
     $this->gbDialog->baseLink = $this->baseLink;
     $this->gbDialog->dialogTitle =
       papaya_strings::escapeHTMLChars($this->_gt('Properties'));
@@ -361,16 +407,19 @@ class admin_guestbook extends base_guestbook {
   *
   * @access public
   */
-  function initializeGbEditForm() {
+  public function initializeGbEditForm() {
     if (!(isset($this->gbDialog) && is_object($this->gbDialog))) {
       include_once(PAPAYA_INCLUDE_PATH.'system/base_dialog.php');
       $data = $this->book;
-      $hidden = array('cmd'=>'edit_book', 'save'=>1, 'gb_id'=>$data['gb_id']);
+      $hidden = array(
+        'cmd' => 'edit_book', 'save' => 1, 'gb_id' => $data['gb_id']
+      );
       $fields = array(
         'title' => array('Title', 'isNoHTML', TRUE, 'input', 200),
       );
-      $this->gbDialog = &new base_dialog($this, $this->paramName,
-        $fields, $data, $hidden);
+      $this->gbDialog = &new base_dialog(
+        $this, $this->paramName, $fields, $data, $hidden
+      );
       $this->gbDialog->msgs = &$this->msgs;
       $this->gbDialog->loadParams();
     }
@@ -405,11 +454,12 @@ class admin_guestbook extends base_guestbook {
    * @access public
    * @return boolean
    */
-  function getXMLEntryList() {
+  public function getXMLEntryList() {
     /* @todo set limit / offset params when backend paging has been implemented */
     $this->loadEntries($this->params['gb_id'], NULL, NULL);
 
-    if (isset($this->params['gb_id']) && sizeof($this->entries) > 0) {
+    if (isset($this->params['gb_id']) &&
+        isset($this->entries) && count($this->entries) > 0) {
       $result = sprintf('<listview width="100%%" title="%s">',
         $this->_gt('Entries'));
       $result .= '<cols>';
@@ -449,7 +499,7 @@ class admin_guestbook extends base_guestbook {
   *
   * @access public
   */
-  function getXMLDelEntryForm() {
+  public function getXMLDelEntryForm() {
     $this->loadEntry($this->params['entry_id']);
     if (isset($this->entry) && is_array($this->entry)) {
       include_once(PAPAYA_INCLUDE_PATH.'system/base_msgdialog.php');
@@ -476,10 +526,10 @@ class admin_guestbook extends base_guestbook {
   *
   * @access public
   */
-  function getXMLEntryForm() {
+  public function getXMLEntryForm() {
     if (isset($this->entry) && is_array($this->entry)) {
       $this->initializeEntryEditForm();
-      $this->entryDialog->inputFieldSize = $this->inputFieldSize;
+      $this->gbDialog->inputFieldSize = 'x-large';
       $this->entryDialog->baseLink = $this->baseLink;
       $this->entryDialog->dialogTitle =
         papaya_strings::escapeHTMLChars($this->_gt('Properties'));

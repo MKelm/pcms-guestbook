@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------
 |  Guestbook module for papaya CMS 5                                  |
-|  Version: mk-1.3a (29.05.2008)                                       |
+|  Version: mk-1.4 (21.05.2010)                                       |
 |  Authors: Alexander Nichau (Original), Martin Kelm (Updates)        |
 -----------------------------------------------------------------------
 
@@ -10,6 +10,15 @@ for use in papaya CMS 5 (www.papaya-cms.com).
 This module was tested with php5 and mysql4/5. Although papayaCMS offers native
 support for postre sql, I had no opportunity to test it on such a database or
 on any other rdbms. Sorry, but let me know if it's working on any other system.
+
+Update mk-1.4 (21.05.2010) [3 years revision]:
+- XSL templates for papaya CMS demo template set
+- Fixed input checks
+- Fixed a lot notice errors
+- Improved coding style
+- Some minor output improvements
+- Improved output escaping
+- Removed PHP4 support
 
 Update mk-1.3a (29.05.2008):
 - Fixed pagination offset
@@ -56,4 +65,3 @@ Don´t forget to build a papaya view for this module.
 
 This module is offered under GNU General Public Licence
 (GPL). The detailed license text can be found in gpl.txt
-
