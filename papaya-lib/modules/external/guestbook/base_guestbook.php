@@ -48,6 +48,12 @@ class base_guestbook extends base_db {
   * @var array
   */
   public $entries = NULL;
+  
+  /**
+  * Entries absolute count.
+  * @var integer $entriesAbsCount
+  */
+  public $entriesAbsCount = 0;
 
   /**
   * Entry
@@ -146,6 +152,7 @@ class base_guestbook extends base_db {
         while ($row = $res->fetchRow(DB_FETCHMODE_ASSOC)) {
           $this->entries[$row['entry_id']] = $row;
         }
+        $this->entriesAbsCount = $res->absCount();
         return TRUE;
       }
       return FALSE;

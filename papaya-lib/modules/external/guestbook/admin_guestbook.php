@@ -48,6 +48,12 @@ class admin_guestbook extends base_guestbook {
   * @var array $localImages
   */
   public $localImages = NULL;
+  
+  /**
+  * Entry page list limit.
+  * @var integer $entriesPerPage
+  */
+  public $entriesPerPage = 15;
 
   /*
   * Initialize - Load parameters and session variable
@@ -76,8 +82,13 @@ class admin_guestbook extends base_guestbook {
   /**
   * Execute - basic function for handling parameters
   */
-  public public function execute() {
+  public function execute() {
     $cmd = !empty($this->params['cmd']) ? $this->params['cmd'] : '';
+    
+    $this->params['offset'] = 
+      is_numeric($this->params['offset']) == TRUE ? 
+        $this->params['offset'] : 0;
+    
     switch ($cmd) {
     case 'add_book' :
       if (isset($this->params['title']) && $this->params['save'] == 1) {
@@ -116,6 +127,7 @@ class admin_guestbook extends base_guestbook {
             MSG_ERROR, $this->_gt('Database error! Changes not saved.')
           );
         }
+        $this->loadBook($this->params['gb_id']);
       } elseif (isset($this->params['gb_id']) &&
                 isset($this->books[(int)$this->params['gb_id']]) &&
                 is_array($this->books[(int)$this->params['gb_id']])) {
@@ -134,6 +146,24 @@ class admin_guestbook extends base_guestbook {
         } else {
           $this->addMsg(MSG_ERROR, $this->_gt('Database error!.'));
         }
+      }
+      break;
+    case 'edit_entry' :
+      if (isset($this->params['save']) && $this->params['save'] == 1 &&
+          isset($this->params['entry_id'])) {
+        if ($this->saveEntry()) {
+          $this->addMsg(
+            MSG_INFO,
+            sprintf($this->_gt('%s modified.'), $this->_gt('Entry'))
+          );
+        } else {
+          $this->addMsg(
+            MSG_ERROR, $this->_gt('Database error! Changes not saved.')
+          );
+        }
+        $this->loadEntry($this->params['entry_id']);
+      } elseif (isset($this->params['entry_id'])) {
+        $this->loadEntry($this->params['entry_id']);
       }
       break;
     }
@@ -157,6 +187,10 @@ class admin_guestbook extends base_guestbook {
         $this->getXMLDelEntryForm();
         $this->getXMLEntryList();
         break;
+      case 'edit_entry' :
+        $this->getXMLEditEntryForm();
+        $this->getXMLEntryList();
+        break;
       case 'add_book' :
         $this->getXMLGbAddForm();
         break;
@@ -168,11 +202,6 @@ class admin_guestbook extends base_guestbook {
           $this->getXMLEntryList();
         } else {
           $this->addMsg(MSG_INFO, sprintf($this->_gt('Please select a book.')));
-        }
-      }
-      if (!isset($this->entries) || count($this->entries) == 0) {
-        if (isset($this->params['gb_id']) && $this->params['gb_id'] > 0) {
-          $this->addMsg(MSG_INFO, sprintf($this->_gt('No entries found.')));
         }
       }
       $this->getXMLBookList();
@@ -188,33 +217,34 @@ class admin_guestbook extends base_guestbook {
     $toolbar->images = &$this->images;
 
     $toolbar->addButton(
-      'New book',
+      'Add Book',
       $this->getLink(array('cmd' => 'add_book')), $this->localImages['gbook_add'],
       '',
-      FALSE
+      isset($this->params['cmd']) && $this->params['cmd'] == 'add_book'
     );
-    if (isset($this->params['gb_id']) &&
-        isset($this->params['entry_id']) == FALSE) {
+    if (isset($this->params['gb_id'])) {
       $toolbar->addButton(
-        'Properties',
+        'Edit Book',
         $this->getLink(
           array('cmd' => 'edit_book', 'gb_id' => $this->params['gb_id'])
         ),
-        $this->localImages['gbook_edit'], '', FALSE
+        $this->localImages['gbook_edit'], '', 
+        isset($this->params['cmd']) && $this->params['cmd'] == 'edit_book'
       );
     }
-    if (isset($this->params['gb_id']) &&
-        isset($this->params['entry_id']) == FALSE) {
+    if (isset($this->params['gb_id'])) {
       $toolbar->addButton(
         'Delete Book',
         $this->getLink(
           array('cmd' => 'del_book', 'gb_id' => $this->params['gb_id'])
         ),
-        $this->localImages['gbook_remove'], '', FALSE
+        $this->localImages['gbook_remove'], '',
+        isset($this->params['cmd']) && $this->params['cmd'] == 'del_book'
       );
     }
     if (isset($this->params['gb_id']) &&
         isset($this->params['entry_id'])) {
+      $toolbar->addSeperator();	
       $toolbar->addButton(
         'Delete Entry',
         $this->getLink(
@@ -224,7 +254,8 @@ class admin_guestbook extends base_guestbook {
             'entry_id' => $this->params['entry_id']
           )
         ),
-        'actions-page-delete', '', FALSE
+        'actions-page-delete', '', 
+        isset($this->params['cmd']) && $this->params['cmd'] == 'del_entry'
       );
     }
 
@@ -284,6 +315,23 @@ class admin_guestbook extends base_guestbook {
     return FALSE !==
       $this->databaseInsertRecord($this->tableBooks, 'gb_id', $data);
   }
+  
+  /**
+  * Save entry
+  *
+  * @access public
+  * @return boolean
+  */
+  public function saveEntry() {
+    $data = array(
+      'entry_text' => $this->params['entry_text']
+    );
+    return FALSE !==
+      $this->databaseUpdateRecord(
+        $this->tableEntries, $data, 'entry_id', (int)$this->params['entry_id']
+      );
+  }
+
 
   /**
   * Delete entry
@@ -389,8 +437,12 @@ class admin_guestbook extends base_guestbook {
       $this->layout->add($this->gbDialog->getDialogXML());
     }
   }
-
-
+  
+  /**
+  * Get XML for gb add formular.
+  * 
+  * @access public
+  */
   public function getXMLGbAddForm() {
     $this->initializeGbAddForm();
     $this->gbDialog->inputFieldSize = 'x-large';
@@ -446,42 +498,80 @@ class admin_guestbook extends base_guestbook {
     }
   }
 
-
-
   /**
-   * Takes entries from the db and generates a xml view of these
-   *
-   * @access public
-   * @return boolean
-   */
+  * Takes entries from the db and generates a xml view of these
+  *
+  * @access public
+  * @return boolean
+  */
   public function getXMLEntryList() {
-    /* @todo set limit / offset params when backend paging has been implemented */
-    $this->loadEntries($this->params['gb_id'], NULL, NULL);
+    $this->loadEntries(
+      $this->params['gb_id'], 
+      $this->entriesPerPage, 
+      $this->params['offset']
+    );
 
     if (isset($this->params['gb_id']) &&
         isset($this->entries) && count($this->entries) > 0) {
       $result = sprintf('<listview width="100%%" title="%s">',
         $this->_gt('Entries'));
+        
+      include_once(PAPAYA_INCLUDE_PATH.'system/papaya_paging_buttons.php');
+      $result .= papaya_paging_buttons::getPagingButtons(
+        $this, NULL,
+        $this->params['offset'], $this->entriesPerPage, $this->entriesAbsCount, 25
+      );
+        
       $result .= '<cols>';
       $result .= sprintf('<col>%s</col>', $this->_gt('Subject'));
       $result .= sprintf('<col align="center">%s</col>', $this->_gt('Created'));
+      $result .= sprintf('<col>%s</col>', $this->_gt('Delete'));
       $result .= '</cols>';
       $result .= '<items>';
-      $this->params['offset'] =
-        is_numeric($this->params['offset']) == true ? $this->params['offset'] : 0;
 
       foreach($this->entries as $entry) {
         $selected = (isset($this->params['entry_id']) &&
           $entry['entry_id'] == $this->params['entry_id']) ? ' selected="selected"' : '';
-        $result .= sprintf('<listitem href="%s" title="%s" image="%s" %s>',
-        $this->getLink(array('entry_id'=>(int)$entry['entry_id'],
-            'offset'=>(int)@$this->params['offset'])),
-        papaya_strings::escapeHTMLChars($entry['author'].' (Email: '.
-          $entry['email'].', IP: '.$entry['entry_ip'].') '),
-        $this->images['items-page'], $selected);
-        $result .= sprintf('<subitem align="center">%s</subitem>',
-        papaya_strings::escapeHTMLChars(date('Y-m-d H:i:s',
-          $entry['entry_created'])));
+        $result .= sprintf(
+          '<listitem href="%s" title="%s" image="%s" %s>',
+          $this->getLink(
+            array(
+              'cmd' => 'edit_entry',
+              'entry_id' => $entry['entry_id'],
+              'offset' => $this->params['offset']
+            )
+          ),
+          papaya_strings::escapeHTMLChars(
+            $entry['author'].' (Email: '.
+            $entry['email'].', IP: '.
+            $entry['entry_ip'].') '
+          ),
+          $this->images['items-page'], 
+          $selected
+        );
+        $result .= sprintf(
+          '<subitem align="center">%s</subitem>',
+          papaya_strings::escapeHTMLChars(
+            date('Y-m-d H:i:s', $entry['entry_created'])
+          )
+        );
+        
+        $result .= sprintf(
+          '<subitem><a href="%s"><glyph src="%s" hint="%s" /></a>'.
+          '</subitem>',
+          papaya_strings::escapeHTMLChars(
+            $this->getLink(
+              array(
+                'cmd' => 'del_entry',
+                'entry_id' => $entry['entry_id'],
+                'offset' => $this->params['offset']
+              )
+            )
+          ),
+          $this->images['actions-page-delete'],
+          $this->_gt('Delete Entry')
+        );
+
         $result .= '</listitem>';
       }
       $result .= '</items>';
@@ -489,7 +579,10 @@ class admin_guestbook extends base_guestbook {
       $this->layout->add($result);
 
       return TRUE;
-    }
+    } elseif (isset($this->params['gb_id']) && 
+              (!isset($this->entries) || count($this->entries) == 0)) {
+      $this->addMsg(MSG_INFO, sprintf($this->_gt('No entries found.')));
+	}
     return FALSE;
   }
 
@@ -506,11 +599,14 @@ class admin_guestbook extends base_guestbook {
       $hidden = array(
         'cmd' => 'del_entry',
         'entry_id' => $this->entry['entry_id'],
+        'offset' => $this->params['offset'],
         'confirm_delete' => 1
       );
-      $msg = sprintf($this->_gt('Delete entry (%s) from "%s"?'),
-      (int)$this->entry['entry_id'],
-      papaya_strings::escapeHTMLChars($this->entry['author']));
+      $msg = sprintf(
+        $this->_gt('Delete entry (%s) from "%s"?'),
+        (int)$this->entry['entry_id'],
+        papaya_strings::escapeHTMLChars($this->entry['author'])
+      );
       $dialog = &new base_msgdialog($this, $this->paramName, $hidden,
         $msg, 'question');
       $dialog->baseLink = $this->baseLink;
@@ -526,10 +622,34 @@ class admin_guestbook extends base_guestbook {
   *
   * @access public
   */
-  public function getXMLEntryForm() {
+  public function getXMLEditEntryForm() {
     if (isset($this->entry) && is_array($this->entry)) {
-      $this->initializeEntryEditForm();
-      $this->gbDialog->inputFieldSize = 'x-large';
+      
+      if (!(isset($this->entryDialog) && is_object($this->entryDialog))) {
+        include_once(PAPAYA_INCLUDE_PATH.'system/base_dialog.php');
+		$data = $this->entry;
+		$data['entry_datetime'] = date('Y-m-d H:i', $data['entry_created']);
+		
+		$hidden = array(
+		  'cmd' => 'edit_entry', 
+		  'entry_id' => $data['entry_id'], 
+		  'offset' => $this->params['offset'],
+		  'save' => 1
+		);
+		$fields = array(
+		  'author' => array('Author', 'isNoHTML', TRUE, 'disabled_input', 200),
+		  'email' => array('E-Mail', 'isNoHTML', TRUE, 'disabled_input', 200),
+		  'entry_datetime' => array('Time', 'isNoHTML', TRUE, 'disabled_input', 200),
+		  'entry_text' => array('Text', 'isNoHTML', TRUE, 'textarea', 5)
+		);
+		$this->entryDialog = &new base_dialog(
+		  $this, $this->paramName, $fields, $data, $hidden
+		);
+		$this->entryDialog->msgs = &$this->msgs;
+		$this->entryDialog->loadParams();
+	  }
+
+      $this->entryDialog->inputFieldSize = 'x-large';
       $this->entryDialog->baseLink = $this->baseLink;
       $this->entryDialog->dialogTitle =
         papaya_strings::escapeHTMLChars($this->_gt('Properties'));

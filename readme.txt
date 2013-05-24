@@ -11,6 +11,11 @@ This module was tested with php5 and mysql4/5. Although papayaCMS offers native
 support for postre sql, I had no opportunity to test it on such a database or
 on any other rdbms. Sorry, but let me know if it's working on any other system.
 
+Update mk-1.5 (27.03.2013):
+- Added paging to backend entry list
+- Added edit entry formular in backend
+- Improved delete entry function in backend
+
 Update mk-1.4 (21.05.2010) [3 years revision]:
 - XSL templates for papaya CMS demo template set
 - Fixed input checks
