@@ -218,10 +218,10 @@ class content_guestbook extends base_content {
   function getDefaultOutputXML() {
     $result = $this->outputObj->getEntriesXML((int)$this->data['book'],
       (int)$this->data['entries_per_page'],
-      (int)$this->data['entries_per_page']*(int)$this->params['start']);
+      (int)$this->params['start']);
     $result .= $this->getXMLNavigation((int)$this->data['book'],
       (int)$this->data['entries_per_page'],
-      (int)$this->data['entries_per_page']*(int)$this->params['start']);
+      (int)$this->params['start']);
 
     if ($this->data['show_edit_form'] == 1) {
       $result .= $this->getFormXML(TRUE);
