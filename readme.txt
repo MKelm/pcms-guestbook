@@ -1,15 +1,22 @@
 -----------------------------------------------------------------------
 |  Guestbook module for papaya CMS 5                                  |
-|  Version: mk-1.6 (03.04.2013)                                       |
-|  Authors: Alexander Nichau (Original), Martin Kelm (Updates)        |
+|  Version: mk-1.7 (28.04.2013)                                       |
+|  Authors: Martin Kelm                                               |
 -----------------------------------------------------------------------
 
 This module offers a guestbook view and the corresponding admin page module
-for use in papaya CMS 5 (www.papaya-cms.com).
+for use in papaya CMS 5.5 (www.papaya-cms.com).
 
-This module was tested with php5 and mysql4/5. Although papayaCMS offers native
+This module was tested with php 5.3. Although papayaCMS offers native
 support for postre sql, I had no opportunity to test it on such a database or
 on any other rdbms. Sorry, but let me know if it's working on any other system.
+
+Update mk-1.7 (28.04.2013):
+- Complete rewrite of package modules to use papaya CMS 5.5 classes
+- Added new page module
+- Added new box module
+- Added new cronjob module to send moderator emails
+- Added new xsl templates
 
 Update mk-1.6 (03.04.2013):
 - Added content language id for guestbook entries

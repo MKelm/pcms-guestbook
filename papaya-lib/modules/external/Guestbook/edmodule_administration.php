@@ -1,9 +1,9 @@
 <?php
 /**
-* Guestbook admin moudle
+* A guestbook administration module.
 *
-* @copyright 2007-2010 by Alexander Nichau, Martin Kelm
-* @link http://www.idxsolutions.de/
+* @copyright 2013 by Martin Kelm
+* @link http://idx.shrt.ws
 * @license http://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License, version 2
 *
 * You can redistribute and/or modify this script under the terms of the GNU General Public
@@ -12,24 +12,22 @@
 * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 * FOR A PARTICULAR PURPOSE.
 *
-* @package module_guestbook
-* @author Alexander Nichau <alexander@nichau.com> (original 2007)
-* @author Martin Kelm <kelm@idxsolutions.de> (updates 2007-2010)
+* @package Papaya-Modules
+* @subpackage External-Guestbook
 */
 
 /**
-* Basic class modules
+* Base class for administration modules.
 */
 require_once(PAPAYA_INCLUDE_PATH.'system/base_module.php');
 
 /**
-* Guestbook admin module
+* A guestbook administration module.
 *
-* @package module_guestbook
-* @author Alexander Nichau <alexander@nichau.com> (original 2007)
-* @author Martin Kelm <kelm@idxsolutions.de> (updates 2007-2010)
+* @package Papaya-Modules
+* @subpackage External-Guestbook
 */
-class edmodule_guestbook extends base_module {
+class edmodule_administration extends base_module {
 
   /**
   * Permissions
@@ -45,16 +43,11 @@ class edmodule_guestbook extends base_module {
   public function execModule() {
     if ($this->hasPerm(1, TRUE)) {
       $path = dirname(__FILE__);
-      include_once($path.'/admin_guestbook.php');
-      $gb = &new admin_guestbook;
-      $gb->module = &$this;
-      $gb->images = &$this->images;
-      $gb->msgs = &$this->msgs;
-      $gb->layout = &$this->layout;
-      $gb->authUser = &$this->authUser;
-      $gb->initialize();
-      $gb->execute();
-      $gb->getXML();
+      include_once($path.'/Administration/Page.php');
+      $administration = new GuestbookAdministrationPage(
+        $this->layout
+      );
+      $administration->execute();
     }
   }
 }
