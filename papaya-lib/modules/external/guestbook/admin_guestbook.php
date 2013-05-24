@@ -1,10 +1,20 @@
 <?php
 /**
-* Edit module guestbook
+* Guestbook admin moudle
+
+* @copyright 2007-2008 by Alexander Nichau, Martin Kelm
+* @link http://www.idxsolutions.de/
+* @license http://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License, version 2
+*
+* You can redistribute and/or modify this script under the terms of the GNU General Public
+* License (GPL) version 2, provided that the copyright and license notes, including these
+* lines, remain unmodified. papaya is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+* FOR A PARTICULAR PURPOSE.
 *
 * @package module_guestbook
 * @author Alexander Nichau <alexander@nichau.com>
-* @author Martin Kelm <alexander@nichau.com>
+* @author Martin Kelm <kelm@idxsolutions.de>
 */
 
 /**
@@ -12,7 +22,13 @@
 */
 require_once(dirname(__FILE__).'/base_guestbook.php');
 
-
+/**
+* Guestbook admin module
+*
+* @package module_guestbook
+* @author Alexander Nichau <alexander@nichau.com>
+* @author Martin Kelm <kelm@idxsolutions.de>
+*/
 class admin_guestbook extends base_guestbook {
 
   /**
@@ -390,7 +406,8 @@ class admin_guestbook extends base_guestbook {
    * @return boolean
    */
   function getXMLEntryList() {
-    $this->loadEntries($this->params['gb_id'], $this->params['offset']);
+    /* @todo set limit / offset params when backend paging has been implemented */
+    $this->loadEntries($this->params['gb_id'], NULL, NULL);
 
     if (isset($this->params['gb_id']) && sizeof($this->entries) > 0) {
       $result = sprintf('<listview width="100%%" title="%s">',
