@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<table name="guestbookentries" prefix="yes">
+<fields>
+<field name="entry_id" type="integer" size="8"  null="no" autoinc="yes"/>
+<field name="guestbook_id" type="integer" size="4"  null="no"/>
+<field name="entry_created" type="integer" size="8"  null="no"/>
+<field name="entry_text" type="string" size="65535"  null="no"/>
+<field name="entry_ip" type="string" size="32"  null="no"/>
+<field name="author" type="string" size="30"  null="no"/>
+<field name="email" type="string" size="30"  null="no"/>
+</fields>
+<keys>
+<primary-key>
+<field>entry_id</field></primary-key>
+</keys>
+</table>

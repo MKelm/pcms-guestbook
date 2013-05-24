@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<table name="guestbooks" prefix="yes">
+<fields>
+<field name="gb_id" type="integer" size="4"  null="no" autoinc="yes"/>
+<field name="title" type="string" size="30"  null="no"/>
+</fields>
+<keys>
+<primary-key>
+<field>gb_id</field></primary-key>
+</keys>
+</table>
