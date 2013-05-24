@@ -88,8 +88,8 @@ class base_guestbook extends base_db {
   public function countEntries($bookId) {
     $sql = "SELECT COUNT(*) AS c
               FROM %s
-             WHERE guestbook_id = '%s'";
-    $params = array($this->tableEntries, $bookId);
+             WHERE guestbook_id = '%d' AND entry_lngid = '%d'";
+    $params = array($this->tableEntries, $bookId, $this->langId);
 
     if ($res = $this->databaseQueryFmt($sql, $params)) {
       if ($count = $res->fetchField()) {
@@ -143,10 +143,10 @@ class base_guestbook extends base_db {
       $sql = "SELECT entry_id, entry_created, entry_text,
                      entry_ip, author, email
                 FROM %s
-               WHERE guestbook_id = '%s'
+               WHERE guestbook_id = '%d' AND entry_lngid = %d
                ORDER BY entry_created DESC $limitCond";
 
-      $params = array($this->tableEntries, $gbId);
+      $params = array($this->tableEntries, $gbId, $this->langId);
 
       if ($res = $this->databaseQueryFmt($sql, $params)) {
         while ($row = $res->fetchRow(DB_FETCHMODE_ASSOC)) {
@@ -223,7 +223,9 @@ class base_guestbook extends base_db {
    * @param string $text
    * @return boolean
    */
-  public function checkSpam($block, $email, $text) {
+  public function checkSpam(
+                    $block, $email, $text, $useSpamfilter = TRUE
+                  ) {
     $checkTime = time() - $block;
     $sql = "SELECT COUNT(entry_id) AS entries
                 FROM %s
@@ -254,8 +256,9 @@ class base_guestbook extends base_db {
     }
     include_once(PAPAYA_INCLUDE_PATH.'system/base_spamfilter.php');
     $filter = &base_spamfilter::getInstance();
-    $probability = $filter->check($text, $this->langId);
     $filter->log($text, $this->langId, 'Guestbook Entry Text');
+    $probability = $filter->check($text, $this->langId);
+
     if ($probability['spam'] &&
         defined('PAPAYA_SPAM_BLOCK') && PAPAYA_SPAM_BLOCK) {
       return FALSE;
@@ -276,11 +279,12 @@ class base_guestbook extends base_db {
   public function createEntry($bookId, $name, $email, $text) {
     $data = array(
       'author' => $name,
-      'email'  => $email,
-      'entry_text'   => $text,
+      'email' => $email,
+      'entry_text' => $text,
       'entry_created' => time(),
-      'entry_ip'      => $_SERVER['REMOTE_ADDR'],
-      'guestbook_id'  => $bookId
+      'entry_ip' => $_SERVER['REMOTE_ADDR'],
+      'entry_lngid' => $this->langId,
+      'guestbook_id' => $bookId
     );
     if ($this->databaseInsertRecord($this->tableEntries, 'entry_id', $data)) {
       return TRUE;

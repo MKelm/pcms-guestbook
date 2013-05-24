@@ -91,6 +91,7 @@ class actionbox_guestbook_teaser extends base_actionbox {
     if (empty($this->outputObj) || !is_object($this->outputObj)) {
       include_once(dirname(__FILE__).'/output_guestbook.php');
       $this->outputObj = &new output_guestbook($this);
+      $this->outputObj->langId = $this->parentObj->getContentLanguageId();
     }
   }
 

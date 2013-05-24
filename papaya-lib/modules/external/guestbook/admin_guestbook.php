@@ -75,6 +75,11 @@ class admin_guestbook extends base_guestbook {
     if (!isset($this->params['offset'])) {
       $this->params['offset'] = 0;
     }
+    
+    include_once(PAPAYA_INCLUDE_PATH.'system/base_language_select.php');
+    $lngSelect = &base_language_select::getInstance();
+    $this->langId = $lngSelect->currentLanguageId;
+    
     $this->loadBooks();
     $this->setSessionValue($this->sessionParamName, $this->sessionParams);
   }

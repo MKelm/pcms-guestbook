@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------
 |  Guestbook module for papaya CMS 5                                  |
-|  Version: mk-1.4 (21.05.2010)                                       |
+|  Version: mk-1.6 (03.04.2013)                                       |
 |  Authors: Alexander Nichau (Original), Martin Kelm (Updates)        |
 -----------------------------------------------------------------------
 
@@ -10,6 +10,10 @@ for use in papaya CMS 5 (www.papaya-cms.com).
 This module was tested with php5 and mysql4/5. Although papayaCMS offers native
 support for postre sql, I had no opportunity to test it on such a database or
 on any other rdbms. Sorry, but let me know if it's working on any other system.
+
+Update mk-1.6 (03.04.2013):
+- Added content language id for guestbook entries
+- Fixed language id values for spam log and spam check
 
 Update mk-1.5 (27.03.2013):
 - Added paging to backend entry list
